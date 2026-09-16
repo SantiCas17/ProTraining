@@ -1,0 +1,39 @@
+/* static/css/style.css */
+body {
+    background-color: #121212;
+    background-image: url('../img/curvas.svg');
+    background-size: 300px; /* Tamaño del azulejo topográfico */
+    background-repeat: repeat; /* Hace el efecto seamless infinito */
+    background-position: center;
+    background-attachment: fixed;
+    color: #e0e0e0;
+}
+
+/* Efecto Cristal (Glassmorphism) para aislar la lectura de los datos */
+.bg-glass {
+    background-color: rgba(18, 18, 18, 0.85) !important;
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-glass {
+    background-color: rgba(18, 18, 18, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Colores vibrantes para los links */
+a.social-link {
+    color: #ed6327; /* Naranja Strava */
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+a.social-link.garmin-link {
+    color: #007cc3; /* Azul Garmin */
+}
+
+a.social-link:hover {
+    color: #ffffff;
+    transform: translateY(-2px);
+}

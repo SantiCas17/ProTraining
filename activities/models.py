@@ -16,6 +16,10 @@ class BaseActivity(models.Model):
 
     def __str__(self):
         return f"{self.date.strftime('%d/%m/%Y')} - {self.__class__.__name__}"
+    @property
+    def formatted_duration(self):
+        """Limpia los microsegundos del campo DurationField"""
+        return str(self.duration).split('.')[0]
 
 
 class RunActivity(BaseActivity):

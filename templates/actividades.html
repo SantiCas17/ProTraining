@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Actividades del Mes{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold">Actividades - Período {{ mes_actual }}</h2>
+        <p class="text-muted">Mostrando exclusivamente las sesiones del mes en curso.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-glass border-0 shadow-lg">
+            
+            <!-- PESTAÑAS (TABS) -->
+            <div class="card-header border-bottom border-secondary pt-3 px-4">
+                <ul class="nav nav-tabs card-header-tabs" id="actividadesTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active text-light" id="run-tab" data-bs-toggle="tab" data-bs-target="#run" type="button" role="tab">🏃 Run / Trail</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-light" id="bike-tab" data-bs-toggle="tab" data-bs-target="#bike" type="button" role="tab">🚴 Ciclismo</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-light" id="swim-tab" data-bs-toggle="tab" data-bs-target="#swim" type="button" role="tab">🏊 Natación</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="tab-content" id="actividadesTabsContent">
+                    
+                    <!-- TAB 1: RUNNING / TRAIL -->
+                    <div class="tab-pane fade show active" id="run" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover table-borderless mb-0 align-middle">
+                                <thead>
+                                    <tr class="text-success">
+                                        <th class="py-3 ps-4">Fecha</th>
+                                        <th class="py-3">Tipo</th>
+                                        <th class="py-3">Distancia</th>
+                                        <th class="py-3">Desnivel (+)</th>
+                                        <th class="py-3">Tiempo</th>
+                                        <th class="py-3">FC Prom.</th>
+                                        <th class="py-3">TE (Aer/Ana)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for act in runs %}
+                                    <tr>
+                                        <td class="ps-4">{{ act.date|date:"d M Y" }}</td>
+                                        <td>
+                                            {% if act.is_trail %}
+                                                <span class="badge bg-success bg-opacity-75">Trail Running</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary bg-opacity-75">Running</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ act.distance_km|floatformat:2 }} km</td>
+                                        <td>{{ act.elevation_gain }} m</td>
+                                        <td>{{ act.formatted_duration }}</td>
+                                        <td>{{ act.avg_heart_rate|default:"-" }} lpm</td>
+                                        <td>
+                                            <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
+                                            <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="7" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: CICLISMO -->
+                    <div class="tab-pane fade" id="bike" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover table-borderless mb-0 align-middle">
+                                <thead>
+                                    <tr class="text-info">
+                                        <th class="py-3 ps-4">Fecha</th>
+                                        <th class="py-3">Distancia</th>
+                                        <th class="py-3">Desnivel (+)</th>
+                                        <th class="py-3">Tiempo</th>
+                                        <th class="py-3">Vel. Prom.</th>
+                                        <th class="py-3">FC Prom.</th>
+                                        <th class="py-3">TE (Aer/Ana)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for act in rides %}
+                                    <tr>
+                                        <td class="ps-4">{{ act.date|date:"d M Y" }}</td>
+                                        <td>{{ act.distance_km|floatformat:2 }} km</td>
+                                        <td>{{ act.elevation_gain }} m</td>
+                                        <td>{{ act.formatted_duration }}</td>
+                                        <td>{{ act.avg_speed|floatformat:1|default:"-" }} km/h</td>
+                                        <td>{{ act.avg_heart_rate|default:"-" }} lpm</td>
+                                        <td>
+                                            <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
+                                            <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="7" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: NATACIÓN -->
+                    <div class="tab-pane fade" id="swim" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover table-borderless mb-0 align-middle">
+                                <thead>
+                                    <tr class="text-primary">
+                                        <th class="py-3 ps-4">Fecha</th>
+                                        <th class="py-3">Entorno</th>
+                                        <th class="py-3">Distancia</th>
+                                        <th class="py-3">Tiempo</th>
+                                        <th class="py-3">SWOLF</th>
+                                        <th class="py-3">FC Prom.</th>
+                                        <th class="py-3">TE (Aer/Ana)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for act in swims %}
+                                    <tr>
+                                        <td class="ps-4">{{ act.date|date:"d M Y" }}</td>
+                                        <td>
+                                            {% if act.is_open_water %}
+                                                <span class="badge bg-primary bg-opacity-75">Aguas Abiertas</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary bg-opacity-75">Pileta</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ act.distance_meters }} m</td>
+                                        <td>{{ act.formatted_duration }}</td>
+                                        <td>{{ act.swolf|default:"-" }}</td>
+                                        <td>{{ act.avg_heart_rate|default:"-" }} lpm</td>
+                                        <td>
+                                            <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
+                                            <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="7" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
