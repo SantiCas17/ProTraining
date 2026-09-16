@@ -1,14 +1,287 @@
 {% extends 'base.html' %}
 
-{% block title %}Mi Rendimiento{% endblock %}
+{% block title %}Dashboard Anual{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 text-center my-5">
-        <h1 class="display-4 fw-bold">Bienvenido a ProTraining</h1>
-        <p class="lead text-muted">Tu ecosistema local de rendimiento deportivo.</p>
-        <hr class="bg-secondary w-25 mx-auto my-4">
-        <p>Las curvas de nivel y el Dark Mode están activos. Pronto inyectaremos los gráficos de Chart.js aquí.</p>
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-end">
+        <div>
+            <h2 class="fw-bold">Inteligencia de Datos</h2>
+            <p class="text-muted mb-0">Análisis de volumen y distribución de cargas.</p>
+        </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-glass border-0 shadow-lg">
+            
+            <div class="card-header border-bottom border-secondary pt-3 px-4">
+                <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active text-light fw-bold" data-bs-toggle="tab" data-bs-target="#mensual" type="button">
+                            📅 Resumen {{ mes_actual }}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-light fw-bold" data-bs-toggle="tab" data-bs-target="#anual" type="button">
+                            📊 Acumulado Anual {{ anio_actual }}
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="tab-content">
+                    
+                    <!-- VISTA MENSUAL -->
+                    <div class="tab-pane fade show active" id="mensual">
+                        
+                        <!-- FILA 1: Barras y Tortas -->
+                        <div class="row justify-content-center mb-4">
+                            <!-- Barras Volumen -->
+                            <div class="col-md-4 mb-4">
+                                <div class="text-center mb-3">
+                                    <h5 class="fw-bold text-light">Volumen por Deporte</h5>
+                                    <small class="text-muted">Kilómetros totales del mes</small>
+                                </div>
+                                <div style="position: relative; height:250px; width:100%">
+                                    <canvas id="volumenMensualChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Torta Terreno -->
+                            <div class="col-md-4 mb-4">
+                                <div class="text-center mb-3">
+                                    <h5 class="fw-bold text-success">Terreno (Running)</h5>
+                                    <small class="text-muted">Trail vs Calle del mes</small>
+                                </div>
+                                <div style="position: relative; height:250px; width:100%">
+                                    <canvas id="terrenoChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Torta Tiempo -->
+                            <div class="col-md-4 mb-4">
+                                <div class="text-center mb-3">
+                                    <h5 class="fw-bold text-info">Distribución de Tiempo</h5>
+                                    <small class="text-muted">Horas invertidas por deporte</small>
+                                </div>
+                                <div style="position: relative; height:250px; width:100%">
+                                    <canvas id="tiempoChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FILA 2: Perfil de Elevación Diario -->
+                        <div class="row">
+                            <div class="col-12 mt-2">
+                                <hr class="border-secondary mb-4">
+                                <div class="text-center mb-3">
+                                    <h5 class="fw-bold text-warning d-flex align-items-center justify-content-center gap-2">
+    Perfil de Elevación Mensual 
+    <span class="badge bg-warning text-dark fs-6">+{{ mensual.total_desnivel }}m</span>
+                                </h5>
+                                    <small class="text-muted">Desnivel Positivo (m) acumulado por día a lo largo del mes</small>
+                                </div>
+                                <div style="position: relative; height:300px; width:100%">
+                                    <canvas id="desnivelMensualChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VISTA ANUAL -->
+                    <div class="tab-pane fade" id="anual">
+                        <div class="row">
+                            <div class="col-12 mb-5">
+                                <div class="text-center mb-3">
+                                    <h5 class="fw-bold text-light">Volumen Kilométrico Anual</h5>
+                                </div>
+                                <div style="position: relative; height:350px; width:100%">
+                                    <canvas id="volumenAnualChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <hr class="border-secondary mb-4">
+                                <div class="text-center mb-3">
+                                    <h5 class="fw-bold text-warning d-flex align-items-center justify-content-center gap-2">
+    Perfil de Elevación Anual 
+    <span class="badge bg-warning text-dark fs-6">+{{ graficos_anuales.total_desnivel }}m</span>
+</h5>
+                                    <small class="text-muted">Desnivel Positivo exclusivo de Running/Trail</small>
+                                </div>
+                                <div style="position: relative; height:300px; width:100%">
+                                    <canvas id="desnivelAnualChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ mensual|json_script:"mensual-data" }}
+{{ graficos_anuales|json_script:"anuales-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const datosMensuales = JSON.parse(document.getElementById('mensual-data').textContent);
+    const datosAnuales = JSON.parse(document.getElementById('anuales-data').textContent);
+
+    Chart.defaults.color = '#a0a0a0';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+    Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
+
+    // --- VISTA MENSUAL ---
+
+    // 1. Barras Volumen Mensual
+    const ctxVolMen = document.getElementById('volumenMensualChart').getContext('2d');
+    let volumenMensualChart = new Chart(ctxVolMen, {
+        type: 'bar',
+        data: {
+            labels: ['Running', 'Ciclismo', 'Natación'],
+            datasets: [{
+                data: [datosMensuales.run_km, datosMensuales.bike_km, datosMensuales.swim_km],
+                backgroundColor: ['#198754', '#0dcaf0', '#0d6efd'],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // 2. Torta Terreno
+    const ctxTerreno = document.getElementById('terrenoChart').getContext('2d');
+    let terrenoChart = new Chart(ctxTerreno, {
+        type: 'doughnut',
+        data: {
+            labels: ['Trail Running', 'Calle'],
+            datasets: [{
+                data: [datosMensuales.trail_km, datosMensuales.calle_km],
+                backgroundColor: ['#198754', '#6c757d'], borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // 3. Torta Tiempo
+    const ctxTiempo = document.getElementById('tiempoChart').getContext('2d');
+    let tiempoChart = new Chart(ctxTiempo, {
+        type: 'pie',
+        data: {
+            labels: ['Running', 'Ciclismo', 'Natación'],
+            datasets: [{
+                data: [datosMensuales.run_min, datosMensuales.bike_min, datosMensuales.swim_min],
+                backgroundColor: ['#198754', '#0dcaf0', '#0d6efd'], borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { 
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let hrs = Math.floor(context.raw / 60);
+                            let mins = context.raw % 60;
+                            return ` ${context.label}: ${hrs}h ${mins}m`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 4. LÍNEA DESNIVEL MENSUAL DIARIO (Curva de Montaña)
+    const ctxDesnivelMen = document.getElementById('desnivelMensualChart').getContext('2d');
+    let desnivelMensualChart = new Chart(ctxDesnivelMen, {
+        type: 'line',
+        data: {
+            labels: datosMensuales.dias_del_mes,
+            datasets: [{
+                label: '⛰️ Desnivel Diario (m)',
+                data: datosMensuales.run_desnivel_diario,
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                borderWidth: 2, fill: true, tension: 0.3,
+                pointBackgroundColor: '#ffc107'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } }
+        }
+    });
+
+
+    // --- VISTA ANUAL ---
+
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    // 5. Barras Anuales
+    const ctxAnual = document.getElementById('volumenAnualChart').getContext('2d');
+    let anualChart = new Chart(ctxAnual, {
+        type: 'bar',
+        data: {
+            labels: meses,
+            datasets: [
+                { label: '🏃 Running (km)', data: datosAnuales.run, backgroundColor: 'rgba(25, 135, 84, 0.8)', borderRadius: 4 },
+                { label: '🚴 Ciclismo (km)', data: datosAnuales.bike, backgroundColor: 'rgba(13, 202, 240, 0.8)', borderRadius: 4 },
+                { label: '🏊 Natación (km)', data: datosAnuales.swim, backgroundColor: 'rgba(13, 110, 253, 0.8)', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+            scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } }
+        }
+    });
+
+    // 6. LÍNEA DESNIVEL ANUAL
+    const ctxDesnivelAnual = document.getElementById('desnivelAnualChart').getContext('2d');
+    let desnivelAnualChart = new Chart(ctxDesnivelAnual, {
+        type: 'line',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: '⛰️ Desnivel Positivo Acumulado (m)',
+                data: datosAnuales.run_desnivel,
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                borderWidth: 2, fill: true, tension: 0.4,
+                pointBackgroundColor: '#ffc107'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } }
+        }
+    });
+
+
+    // Forzamos actualización visual al cambiar de pestaña
+    const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabElements.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function () {
+            volumenMensualChart.update();
+            terrenoChart.update();
+            tiempoChart.update();
+            desnivelMensualChart.update();
+            anualChart.update();
+            desnivelAnualChart.update();
+        });
+    });
+});
+</script>
 {% endblock %}
