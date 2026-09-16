@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Editar Actividad{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-glass border-0 shadow-lg">
+            <div class="card-header border-bottom border-secondary pt-3 px-4 text-light">
+                <h4 class="mb-0 fw-bold">
+    {% if object %}
+        ✏️ Editar Sesión de Entrenamiento
+    {% else %}
+        ➕ Nueva Sesión Manual
+    {% endif %}
+</h4>
+            </div>
+            <div class="card-body p-4 text-light">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'actividades' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

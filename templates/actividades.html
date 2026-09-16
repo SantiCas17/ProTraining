@@ -11,31 +11,35 @@
 </div>
 
 <div class="row">
-    <div class="col-12">
+    <!-- COLUMNA IZQUIERDA: HISTORIAL DE ACTIVIDADES (Más ancha) -->
+    <div class="col-lg-9 mb-4">
         <div class="card bg-glass border-0 shadow-lg">
-            
-            <!-- PESTAÑAS (TABS) -->
             <div class="card-header border-bottom border-secondary pt-3 px-4">
                 <ul class="nav nav-tabs card-header-tabs" id="actividadesTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active text-light" id="run-tab" data-bs-toggle="tab" data-bs-target="#run" type="button" role="tab">🏃 Run / Trail</button>
+                        <button class="nav-link active text-light" data-bs-toggle="tab" data-bs-target="#run" type="button">🏃 Run / Trail</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link text-light" id="bike-tab" data-bs-toggle="tab" data-bs-target="#bike" type="button" role="tab">🚴 Ciclismo</button>
+                        <button class="nav-link text-light" data-bs-toggle="tab" data-bs-target="#bike" type="button">🚴 Ciclismo</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link text-light" id="swim-tab" data-bs-toggle="tab" data-bs-target="#swim" type="button" role="tab">🏊 Natación</button>
+                        <button class="nav-link text-light" data-bs-toggle="tab" data-bs-target="#swim" type="button">🏊 Natación</button>
                     </li>
                 </ul>
             </div>
-
+            
             <div class="card-body p-0">
-                <div class="tab-content" id="actividadesTabsContent">
+                <div class="tab-content">
                     
-                    <!-- TAB 1: RUNNING / TRAIL -->
-                    <div class="tab-pane fade show active" id="run" role="tabpanel">
+                    <!-- TAB RUN/TRAIL -->
+                    <div class="tab-pane fade show active" id="run">
+                        <div class="d-flex justify-content-end p-2 border-bottom border-secondary">
+                            <a href="{% url 'create_run' %}" class="btn btn-sm btn-success fw-bold">
+                                ➕ Cargar Sesión Manual
+                            </a>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover table-borderless mb-0 align-middle">
+                            <table class="table table-dark table-hover table-borderless mb-0 align-middle text-nowrap">
                                 <thead>
                                     <tr class="text-success">
                                         <th class="py-3 ps-4">Fecha</th>
@@ -45,6 +49,8 @@
                                         <th class="py-3">Tiempo</th>
                                         <th class="py-3">FC Prom.</th>
                                         <th class="py-3">TE (Aer/Ana)</th>
+                                        <th class="py-3 text-center">Notas</th>
+                                        <th class="py-3 text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -53,7 +59,7 @@
                                         <td class="ps-4">{{ act.date|date:"d M Y" }}</td>
                                         <td>
                                             {% if act.is_trail %}
-                                                <span class="badge bg-success bg-opacity-75">Trail Running</span>
+                                                <span class="badge bg-success bg-opacity-75">Trail</span>
                                             {% else %}
                                                 <span class="badge bg-secondary bg-opacity-75">Running</span>
                                             {% endif %}
@@ -66,19 +72,35 @@
                                             <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
                                             <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
                                         </td>
+                                        <td class="text-center">
+                                            {% if act.notes %}
+                                                <span title="{{ act.notes }}" style="cursor: help;">📝</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'edit_run' act.id %}" class="btn btn-sm btn-outline-info rounded-circle me-1" title="Editar">✏️</a>
+                                            <a href="{% url 'delete_run' act.id %}" class="btn btn-sm btn-outline-danger rounded-circle" title="Eliminar">🗑️</a>
+                                        </td>
                                     </tr>
                                     {% empty %}
-                                    <tr><td colspan="7" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
+                                    <tr><td colspan="9" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- TAB 2: CICLISMO -->
-                    <div class="tab-pane fade" id="bike" role="tabpanel">
+                    <!-- TAB CICLISMO -->
+                    <div class="tab-pane fade" id="bike">
+                        <div class="d-flex justify-content-end p-2 border-bottom border-secondary">
+                            <a href="{% url 'create_bike' %}" class="btn btn-sm btn-success fw-bold">
+                                ➕ Cargar Sesión Manual
+                            </a>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover table-borderless mb-0 align-middle">
+                            <table class="table table-dark table-hover table-borderless mb-0 align-middle text-nowrap">
                                 <thead>
                                     <tr class="text-info">
                                         <th class="py-3 ps-4">Fecha</th>
@@ -88,6 +110,8 @@
                                         <th class="py-3">Vel. Prom.</th>
                                         <th class="py-3">FC Prom.</th>
                                         <th class="py-3">TE (Aer/Ana)</th>
+                                        <th class="py-3 text-center">Notas</th>
+                                        <th class="py-3 text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -103,19 +127,35 @@
                                             <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
                                             <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
                                         </td>
+                                        <td class="text-center">
+                                            {% if act.notes %}
+                                                <span title="{{ act.notes }}" style="cursor: help;">📝</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'edit_bike' act.id %}" class="btn btn-sm btn-outline-info rounded-circle me-1" title="Editar">✏️</a>
+                                            <a href="{% url 'delete_bike' act.id %}" class="btn btn-sm btn-outline-danger rounded-circle" title="Eliminar">🗑️</a>
+                                        </td>
                                     </tr>
                                     {% empty %}
-                                    <tr><td colspan="7" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
+                                    <tr><td colspan="9" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- TAB 3: NATACIÓN -->
-                    <div class="tab-pane fade" id="swim" role="tabpanel">
+                    <!-- TAB NATACIÓN -->
+                    <div class="tab-pane fade" id="swim">
+                        <div class="d-flex justify-content-end p-2 border-bottom border-secondary">
+                            <a href="{% url 'create_swim' %}" class="btn btn-sm btn-success fw-bold">
+                                ➕ Cargar Sesión Manual
+                            </a>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover table-borderless mb-0 align-middle">
+                            <table class="table table-dark table-hover table-borderless mb-0 align-middle text-nowrap">
                                 <thead>
                                     <tr class="text-primary">
                                         <th class="py-3 ps-4">Fecha</th>
@@ -125,6 +165,8 @@
                                         <th class="py-3">SWOLF</th>
                                         <th class="py-3">FC Prom.</th>
                                         <th class="py-3">TE (Aer/Ana)</th>
+                                        <th class="py-3 text-center">Notas</th>
+                                        <th class="py-3 text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -146,18 +188,158 @@
                                             <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
                                             <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
                                         </td>
+                                        <td class="text-center">
+                                            {% if act.notes %}
+                                                <span title="{{ act.notes }}" style="cursor: help;">📝</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'edit_swim' act.id %}" class="btn btn-sm btn-outline-info rounded-circle me-1" title="Editar">✏️</a>
+                                            <a href="{% url 'delete_swim' act.id %}" class="btn btn-sm btn-outline-danger rounded-circle" title="Eliminar">🗑️</a>
+                                        </td>
                                     </tr>
                                     {% empty %}
-                                    <tr><td colspan="7" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
+                                    <tr><td colspan="9" class="text-center py-4 text-muted">Sin registros este mes.</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- COLUMNA DERECHA: GLOSARIOS (Más angosta) -->
+    <div class="col-lg-3">
+        <!-- WIDGET DINÁMICO: ACUMULADOR MENSUAL -->
+        <div class="card bg-glass border-0 shadow-lg mb-4">
+            <div class="card-header border-secondary text-warning fw-bold">
+                📈 Métricas del Mes
+            </div>
+            <div class="card-body p-0">
+                
+                <!-- Estadísticas Run/Trail -->
+                <div id="widget-run" class="widget-stat">
+                    <ul class="list-group list-group-flush bg-transparent small">
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Km Acumulados</span> <span class="fw-bold">{{ stats.run.km|floatformat:2 }} km</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Desnivel (+)</span> <span class="fw-bold">{{ stats.run.desnivel }} m</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Horas Totales</span> <span class="fw-bold">{{ stats.run.tiempo }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Estadísticas Ciclismo -->
+                <div id="widget-bike" class="widget-stat d-none">
+                    <ul class="list-group list-group-flush bg-transparent small">
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Km Acumulados</span> <span class="fw-bold text-info">{{ stats.bike.km|floatformat:2 }} km</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Desnivel (+)</span> <span class="fw-bold text-info">{{ stats.bike.desnivel }} m</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Horas Totales</span> <span class="fw-bold text-info">{{ stats.bike.tiempo }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Estadísticas Natación -->
+                <div id="widget-swim" class="widget-stat d-none">
+                    <ul class="list-group list-group-flush bg-transparent small">
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Metros Acum.</span> <span class="fw-bold text-primary">{{ stats.swim.m }} m</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                            <span class="text-secondary">Horas Totales</span> <span class="fw-bold text-primary">{{ stats.swim.tiempo }}</span>
+                        </li>
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- GLOSARIO TRAINING EFFECT -->
+        <div class="card bg-glass border-0 shadow-lg mb-4">
+            <div class="card-header border-secondary text-info fw-bold">
+                📊 Training Effect (TE)
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush bg-transparent small">
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span>1.0 a 1.9</span> <span class="text-muted">Recuperación</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span>2.0 a 2.9</span> <span class="text-muted">Mantenimiento</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span>3.0 a 3.9</span> <span class="text-info">Mejora</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span>4.0 a 4.9</span> <span class="text-success">Mejora Considerable</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span>5.0</span> <span class="text-danger fw-bold">Sobreesfuerzo</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- GLOSARIO ZONAS HR DINÁMICO -->
+        <div class="card bg-glass border-0 shadow-lg">
+            <div class="card-header border-secondary text-danger fw-bold d-flex justify-content-between">
+                <span>❤️ Zonas HR</span>
+                {% if zonas_hr %}
+                <span class="badge bg-secondary opacity-75 fw-normal" title="Última actualización">Act. {{ zonas_hr.date|date:"m/y" }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush bg-transparent small">
+                    {% if zonas_hr %}
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span class="text-secondary">Z1 (Regenerativo)</span> <span>{{ zonas_hr.z1_min }} - {{ zonas_hr.z1_max }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span class="text-success">Z2 (Aeróbico)</span> <span>{{ zonas_hr.z2_min }} - {{ zonas_hr.z2_max }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span class="text-info">Z3 (Umbral)</span> <span>{{ zonas_hr.z3_min }} - {{ zonas_hr.z3_max }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span class="text-warning">Z4 (Anaeróbico)</span> <span>{{ zonas_hr.z4_min }} - {{ zonas_hr.z4_max }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                        <span class="text-danger">Z5 (Máximo)</span> <span>{{ zonas_hr.z5_min }} - {{ zonas_hr.z5_max }}</span>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item bg-transparent text-muted py-4 text-center border-0">
+                        No hay estudios de Ergometría cargados en la base de datos.
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', event => {
+                document.querySelectorAll('.widget-stat').forEach(w => w.classList.add('d-none'));
+                const targetId = event.target.getAttribute('data-bs-target').replace('#', '');
+                document.getElementById('widget-' + targetId).classList.remove('d-none');
+            });
+        });
+    });
+</script>
 {% endblock %}
