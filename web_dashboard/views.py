@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy
 from django.views.generic import DeleteView, TemplateView, UpdateView, CreateView
 from django.utils import timezone
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Avg
 from django.db.models.functions import ExtractMonth, ExtractDay
 from datetime import timedelta
 import calendar
@@ -44,7 +44,6 @@ class DashboardView(TemplateView):
         trail_km = runs_month.filter(is_trail=True).aggregate(Sum('distance_km'))['distance_km__sum'] or 0
         calle_km = runs_month.filter(is_trail=False).aggregate(Sum('distance_km'))['distance_km__sum'] or 0
         
-        # Desnivel Mensual Diario (Curva) y TOTAL
         days_in_month = calendar.monthrange(year, month)[1]
         run_mensual_desnivel = [0] * days_in_month
         
@@ -53,8 +52,11 @@ class DashboardView(TemplateView):
             if item['day']:
                 run_mensual_desnivel[item['day'] - 1] = int(item['elev'] or 0)
 
-        # Calculamos el Total del Mes para la etiqueta
         total_desnivel_mes = runs_month.aggregate(Sum('elevation_gain'))['elevation_gain__sum'] or 0
+
+        run_te = runs_month.aggregate(aer=Avg('te_aerobic'), ana=Avg('te_anaerobic'))
+        bike_te = bikes_month.aggregate(aer=Avg('te_aerobic'), ana=Avg('te_anaerobic'))
+        swim_te = swims_month.aggregate(aer=Avg('te_aerobic'), ana=Avg('te_anaerobic'))
 
         def td_to_minutes(td):
             return int(td.total_seconds() / 60) if td else 0
@@ -70,11 +72,13 @@ class DashboardView(TemplateView):
             'trail_km': float(trail_km),
             'calle_km': float(calle_km),
             'run_desnivel_diario': run_mensual_desnivel,
-            'total_desnivel': int(total_desnivel_mes), # NUEVO
+            'total_desnivel': int(total_desnivel_mes),
             'dias_del_mes': list(range(1, days_in_month + 1)),
             'run_min': td_to_minutes(run_time),
             'bike_min': td_to_minutes(bike_time),
-            'swim_min': td_to_minutes(swim_time)
+            'swim_min': td_to_minutes(swim_time),
+            'te_aerobic': [float(run_te['aer'] or 0), float(bike_te['aer'] or 0), float(swim_te['aer'] or 0)],
+            'te_anaerobic': [float(run_te['ana'] or 0), float(bike_te['ana'] or 0), float(swim_te['ana'] or 0)]
         }
 
         # ==========================================
@@ -99,15 +103,22 @@ class DashboardView(TemplateView):
         for item in swims_grouped:
             swim_anual_km[item['month'] - 1] = float(item['total']) / 1000.0
 
-        # Calculamos el Total del Año para la etiqueta
         total_desnivel_anio = RunActivity.objects.filter(date__year=year).aggregate(Sum('elevation_gain'))['elevation_gain__sum'] or 0
+        
+        # NUEVO: Totales Anuales de Volumen
+        total_run_anio = RunActivity.objects.filter(date__year=year).aggregate(Sum('distance_km'))['distance_km__sum'] or 0
+        total_bike_anio = CyclingActivity.objects.filter(date__year=year).aggregate(Sum('distance_km'))['distance_km__sum'] or 0
+        total_swim_anio = (SwimActivity.objects.filter(date__year=year).aggregate(Sum('distance_meters'))['distance_meters__sum'] or 0) / 1000.0
 
         context['graficos_anuales'] = {
             'run': run_anual_km,
             'bike': bike_anual_km,
             'swim': swim_anual_km,
             'run_desnivel': run_anual_desnivel,
-            'total_desnivel': int(total_desnivel_anio) # NUEVO
+            'total_desnivel': int(total_desnivel_anio),
+            'total_run_km': float(total_run_anio),
+            'total_bike_km': float(total_bike_anio),
+            'total_swim_km': float(total_swim_anio)
         }
 
         return context
@@ -133,7 +144,6 @@ class ActividadesView(TemplateView):
         bike_stats = rides.aggregate(km=Sum('distance_km'), desnivel=Sum('elevation_gain'), tiempo=Sum('duration'))
         swim_stats = swims.aggregate(m=Sum('distance_meters'), tiempo=Sum('duration'))
 
-        # stats formateados al frontend
         context['stats'] = {
             'run': {
                 'km': run_stats['km'] or 0,
