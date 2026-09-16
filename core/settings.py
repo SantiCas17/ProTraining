@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'garmin_ingest',
+    'activities',
+    'health',
+    'goals',
+    'web_dashboard',
+    'sheets_sync',
 ]
 
 MIDDLEWARE = [
