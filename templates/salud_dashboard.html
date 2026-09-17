@@ -49,7 +49,21 @@
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <h5 class="fw-bold text-info mb-0">Test: {{ test.date|date:"d M Y" }}</h5>
-                        <small class="text-muted">FC Máxima registrada: <strong class="text-danger">{{ test.max_heart_rate|default:"-" }} ppm</strong></small>
+                        
+                        <!-- NUEVO BLOQUE DE PESO E IMC -->
+                        <small class="text-muted d-block mt-1">
+                            {% if test.doctor_or_clinic %}👨‍⚕️ {{ test.doctor_or_clinic }} | {% endif %}
+                            Peso Registrado: <strong class="text-light">{{ test.weight_kg }} kg</strong> | 
+                            FC Máx: <strong class="text-danger">{{ test.z5_max }} ppm</strong>
+                        </small>
+                        
+                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">
+                            IMC: <strong class="text-light">{{ test.imc }}</strong> 
+                            (<span class="{{ test.imc_color }} fw-bold">{{ test.imc_status }}</span>) | 
+                            Peso Ideal: <strong class="text-info">{{ test.ideal_weight_range }}</strong>
+                        </small>
+                        <!-- FIN NUEVO BLOQUE -->
+
                     </div>
                     <div class="d-flex gap-2">
                         <a href="{% url 'update_ergometry' test.pk %}" class="btn btn-sm btn-outline-info rounded-pill">✏️</a>
@@ -57,27 +71,27 @@
                     </div>
                 </div>
 
-                <!-- Desglose de Zonas -->
+                <!-- Desglose de Zonas Actualizado -->
                 <ul class="list-group list-group-flush bg-transparent small">
                     <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between px-0">
                         <span class="text-light">🟩 Zona 1 (Regenerativo)</span>
-                        <strong class="text-light">{{ test.z1_bottom|default:"-" }} - {{ test.z1_top|default:"-" }} ppm</strong>
+                        <strong class="text-light">{{ test.z1_min }} - {{ test.z1_max }} ppm</strong>
                     </li>
                     <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between px-0">
                         <span class="text-success">🟩 Zona 2 (Fondo Aeróbico)</span>
-                        <strong class="text-success">{{ test.z2_bottom|default:"-" }} - {{ test.z2_top|default:"-" }} ppm</strong>
+                        <strong class="text-success">{{ test.z2_min }} - {{ test.z2_max }} ppm</strong>
                     </li>
                     <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between px-0">
                         <span class="text-warning">🟨 Zona 3 (Tempo)</span>
-                        <strong class="text-warning">{{ test.z3_bottom|default:"-" }} - {{ test.z3_top|default:"-" }} ppm</strong>
+                        <strong class="text-warning">{{ test.z3_min }} - {{ test.z3_max }} ppm</strong>
                     </li>
                     <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between px-0">
                         <span style="color: #fd7e14;">🟧 Zona 4 (Umbral)</span>
-                        <strong style="color: #fd7e14;">{{ test.z4_bottom|default:"-" }} - {{ test.z4_top|default:"-" }} ppm</strong>
+                        <strong style="color: #fd7e14;">{{ test.z4_min }} - {{ test.z4_max }} ppm</strong>
                     </li>
                     <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between px-0">
                         <span class="text-danger">🟥 Zona 5 (Máximo)</span>
-                        <strong class="text-danger">{{ test.z5_bottom|default:"-" }} - {{ test.z5_top|default:"-" }} ppm</strong>
+                        <strong class="text-danger">{{ test.z5_min }} - {{ test.z5_max }} ppm</strong>
                     </li>
                 </ul>
                 
@@ -128,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         {
                             label: 'Puntaje de Sueño (0-100)',
                             data: data.sleep,
-                            borderColor: '#0dcaf0', // Info Blue
+                            borderColor: '#0dcaf0', 
                             backgroundColor: 'rgba(13, 202, 240, 0.1)',
                             borderWidth: 2,
                             tension: 0.3,
@@ -137,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         {
                             label: 'Estrés Medio',
                             data: data.stress,
-                            borderColor: '#ffc107', // Warning Yellow
+                            borderColor: '#ffc107', 
                             backgroundColor: 'rgba(255, 193, 7, 0.1)',
                             borderWidth: 2,
                             tension: 0.3,
@@ -146,10 +160,10 @@ document.addEventListener("DOMContentLoaded", function() {
                         {
                             label: 'FC en Reposo (ppm)',
                             data: data.resting_hr,
-                            borderColor: '#dc3545', // Danger Red
+                            borderColor: '#dc3545', 
                             backgroundColor: 'rgba(220, 53, 69, 0.1)',
                             borderWidth: 2,
-                            borderDash: [5, 5], // Línea punteada para diferenciarla
+                            borderDash: [5, 5], 
                             tension: 0.3,
                             yAxisID: 'y1'
                         }
@@ -181,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             title: { display: true, text: 'Pulsaciones (ppm)' },
                             suggestedMin: 35,
                             suggestedMax: 80,
-                            grid: { drawOnChartArea: false } // Para que no se crucen las líneas de fondo
+                            grid: { drawOnChartArea: false } 
                         }
                     },
                     plugins: {
@@ -190,7 +204,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
         } else {
-            // Si no hay datos de Garmin aún
             const container = document.getElementById('healthChart').parentElement;
             container.innerHTML = '<div class="d-flex h-100 justify-content-center align-items-center text-muted">Aún no hay datos diarios sincronizados. Usá el botón "Sync Garmin".</div>';
         }

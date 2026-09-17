@@ -33,6 +33,33 @@ class ErgometryTest(models.Model):
 
     def __str__(self):
         return f"Ergometría del {self.date.strftime('%d/%m/%Y')} - {self.doctor_or_clinic}"
+    @property
+    def imc_status(self):
+        """Evalúa la situación del peso según la OMS"""
+        val = self.imc
+        if val == 0: return "Sin datos"
+        if val < 18.5: return "Bajo Peso"
+        if val <= 24.9: return "Peso Normal"
+        if val <= 29.9: return "Sobrepeso"
+        return "Obesidad"
+
+    @property
+    def imc_color(self):
+        """Asigna un color para la interfaz según el estado"""
+        val = self.imc
+        if 18.5 <= val <= 24.9: return "text-success"
+        if val > 0 and (val < 18.5 or val <= 29.9): return "text-warning"
+        return "text-danger"
+
+    @property
+    def ideal_weight_range(self):
+        """Calcula el rango de peso ideal basado en la altura"""
+        if self.height_cm > 0:
+            height_m = self.height_cm / 100
+            min_w = round(18.5 * (height_m ** 2), 1)
+            max_w = round(24.9 * (height_m ** 2), 1)
+            return f"{min_w} - {max_w} kg"
+        return "-"
 
 
 class DailyHealth(models.Model):

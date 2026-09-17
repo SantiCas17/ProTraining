@@ -97,10 +97,20 @@ def sync_garmin_by_date(start_date, end_date):
             stats = client.get_stats(d_str)
             sleep = client.get_sleep_data(d_str)
             
+            # NUEVA LÓGICA: Busca el puntaje en los diferentes formatos de Garmin
             sleep_score = None
             if sleep and 'dailySleepDTO' in sleep:
-                sleep_score = sleep['dailySleepDTO'].get('sleepScore', {}).get('value')
-                
+                dto = sleep['dailySleepDTO']
+                # Formato viejo
+                if 'sleepScore' in dto and isinstance(dto['sleepScore'], dict):
+                    sleep_score = dto['sleepScore'].get('value')
+                # Formato nuevo
+                elif 'sleepScores' in dto and 'overall' in dto['sleepScores']:
+                    sleep_score = dto['sleepScores']['overall'].get('value')
+                # Formato directo
+                elif 'sleepScore' in dto and isinstance(dto['sleepScore'], (int, float)):
+                    sleep_score = dto['sleepScore']
+                    
             DailyHealth.objects.update_or_create(
                 date=current_date,
                 defaults={
@@ -110,9 +120,9 @@ def sync_garmin_by_date(start_date, end_date):
                 }
             )
             saved_health += 1
-        except Exception:
-            pass 
-        
+        except Exception as e:
+            print(f"Error procesando salud para {d_str}: {e}")
+            
         current_date += timedelta(days=1)
         time.sleep(0.5) 
         
