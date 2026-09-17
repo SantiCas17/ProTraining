@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mapa Objetivo - {{ goal.name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-start">
+        <div>
+            <a href="{% url 'objetivos' %}" class="btn btn-sm btn-outline-secondary mb-3">⬅️ Volver a Objetivos</a>
+            <h2 class="fw-bold text-warning">{{ goal.name }} ({{ goal.date|date:"Y" }})</h2>
+            <p class="text-light mb-0">🎯 {{ goal.get_race_type_display }} | Faltan <strong class="text-info">{{ goal.days_to_race }} días</strong></p>
+        </div>
+        
+        <div class="d-flex gap-2 mt-4">
+            <a href="{% url 'update_goal' goal.pk %}" class="btn btn-outline-info rounded-pill shadow-sm px-4">✏️ Editar</a>
+            <a href="{% url 'delete_goal' goal.pk %}" class="btn btn-outline-danger rounded-pill shadow-sm px-4">🗑️ Eliminar</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- COLUMNA IZQUIERDA: Ficha, Táctica y Predictiva -->
+    <div class="col-lg-4 mb-4">
+        
+        <!-- FICHA TÉCNICA PRINCIPAL -->
+        <div class="card bg-glass border-0 shadow-lg mb-4">
+            <div class="card-header border-secondary text-light fw-bold">📊 Ficha Técnica</div>
+            <ul class="list-group list-group-flush bg-transparent">
+                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between py-2">
+                    <span class="text-muted">Distancia Total</span>
+                    <span class="fw-bold text-success">{{ goal.target_distance_km|floatformat:1 }} km</span>
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between py-2">
+                    <span class="text-muted">Desnivel Positivo</span>
+                    <span class="fw-bold text-warning">+{{ goal.target_elevation_gain }} m</span>
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between py-2">
+                    <span class="text-muted">Dificultad Técnica</span>
+                    <span class="fw-bold text-danger">{{ goal.elevation_per_km }} m/km</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- CONDICIONES Y ESTRATEGIA (NUEVO) -->
+        {% if goal.weather_condition or goal.nutrition_strategy %}
+        <div class="card bg-glass border-0 shadow-lg mb-4">
+            <div class="card-header border-secondary text-light fw-bold">🌤️ Condiciones y Estrategia</div>
+            <div class="card-body">
+                {% if goal.weather_condition %}
+                <p class="mb-2"><span class="text-muted small">Clima:</span> <strong>{{ goal.get_weather_condition_display }} {% if goal.temperature %}({{ goal.temperature }}°C){% endif %}</strong></p>
+                {% endif %}
+                {% if goal.nutrition_strategy %}
+                <p class="text-light small mb-0 p-2 rounded" style="background-color: rgba(0,0,0,0.3); border-left: 3px solid #0dcaf0;">
+                    {{ goal.nutrition_strategy }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- DESGLOSE TRIATLÓN (NUEVO - Solo visible si es Triatlón) -->
+        {% if goal.race_type == 'TRIATHLON' %}
+        <div class="card bg-glass border-0 shadow-lg mb-4">
+            <div class="card-header border-secondary text-light fw-bold">🏊🚴🏃 Desglose Triatlón</div>
+            <ul class="list-group list-group-flush bg-transparent small">
+                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                    <span class="text-primary">Natación ({{ goal.swim_distance_m }}m)</span>
+                    <span class="fw-bold">{{ goal.swim_pace|default:"-" }} /100m</span>
+                </li>
+                <li class="list-group-item bg-transparent text-muted border-secondary text-center fst-italic py-1" style="font-size: 0.7rem;">
+                    T1: {{ goal.t1_time|default:"-" }}
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                    <span class="text-info">Bici ({{ goal.bike_distance_km }}km)</span>
+                    <span class="fw-bold">{{ goal.bike_speed|default:"-" }} km/h</span>
+                </li>
+                <li class="list-group-item bg-transparent text-muted border-secondary text-center fst-italic py-1" style="font-size: 0.7rem;">
+                    T2: {{ goal.t2_time|default:"-" }}
+                </li>
+                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                    <span class="text-success">Running ({{ goal.run_distance_km }}km)</span>
+                    <span class="fw-bold">{{ goal.run_pace|default:"-" }} /km</span>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- MÓDULO PREDICTIVO (READINESS) ACTUALIZADO -->
+        <div class="card bg-glass border-0 shadow-lg mb-4">
+            <div class="card-header border-secondary text-light fw-bold d-flex justify-content-between align-items-center">
+                <span>🔋 Readiness & Fisiología</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-light small">Estado de Forma:</span>
+                    <span class="badge bg-{{ readiness.color }}">{{ readiness.estado }}</span>
+                </div>
+                <div class="progress mb-3" style="height: 10px; background-color: rgba(255,255,255,0.1);">
+                    <div class="progress-bar bg-{{ readiness.color }}" role="progressbar" style="width: {{ readiness.porcentaje }}%"></div>
+                </div>
+
+                <!-- Acumulados Brutos -->
+                <div class="row text-center mb-3">
+                    <div class="col-6">
+                        <span class="text-muted small d-block">Km Acumulados</span>
+                        <strong class="text-success">{{ readiness.acumulado_km|floatformat:1 }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted small d-block">Desnivel Acum.</span>
+                        <strong class="text-warning">+{{ readiness.acumulado_desnivel }}m</strong>
+                    </div>
+                </div>
+
+                <!-- Diagnósticos Específicos del Backend -->
+                <div class="bg-dark rounded p-2 mb-3 border border-secondary">
+                    <span class="text-muted small fw-bold d-block mb-2 border-bottom border-secondary pb-1">Análisis del Bloque:</span>
+                    <ul class="list-unstyled small mb-0">
+                        {% for diagnostico in readiness.diagnosticos %}
+                            <li class="mb-1 text-light">{{ diagnostico }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Datos de Pacing de Carrera -->
+                {% if goal.target_hr_zone or goal.expected_te %}
+                <hr class="border-secondary my-2">
+                <ul class="list-unstyled text-light small mb-0 mt-2">
+                    {% if goal.target_hr_zone %}
+                    <li class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Pacing Cardíaco Meta:</span>
+                        <strong class="text-danger">{{ goal.get_target_hr_zone_display }}</strong>
+                    </li>
+                    {% endif %}
+                    {% if goal.expected_te %}
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Impacto Esperado (TE):</span>
+                        <strong style="color: #b981f9;">{{ goal.expected_te }}</strong>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        <!-- DEBRIEF & AUTO-MATCH GARMIN (Solo visible si está completada) -->
+        {% if goal.is_completed %}
+        <div class="card bg-glass border-success shadow-lg mb-4">
+            <div class="card-header border-success text-success fw-bold d-flex justify-content-between align-items-center">
+                <span>🏁 Resultados Post-Carrera</span>
+                <span class="badge bg-success">Completada</span>
+            </div>
+            <div class="card-body small">
+                <!-- Crónica Manual -->
+                <div class="row mb-3 text-light">
+                    <div class="col-6"><span class="text-muted">Tiempo Oficial:</span> <br><strong>{{ goal.real_time|default:"-" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Posición Gral:</span> <br><strong>{{ goal.overall_position|default:"-" }}</strong></div>
+                    <div class="col-6 mt-2"><span class="text-muted">RPE (Esfuerzo):</span> <br><strong class="text-warning">{{ goal.rpe|default:"-" }}/10</strong></div>
+                    <div class="col-6 mt-2"><span class="text-muted">Foco Fatiga:</span> <br><strong class="text-danger">{{ goal.fatigue_focus|default:"-" }}</strong></div>
+                </div>
+                
+                {% if goal.debrief_notes %}
+                <div class="p-2 mb-3 rounded" style="background-color: rgba(25, 135, 84, 0.1); border-left: 3px solid #198754;">
+                    <span class="text-muted d-block mb-1">Crónica:</span>
+                    <span class="text-light fst-italic">"{{ goal.debrief_notes }}"</span>
+                </div>
+                {% endif %}
+
+                <!-- Comparativa Garmin vs Planificado -->
+                {% if garmin_match %}
+                <h6 class="text-info border-bottom border-secondary pb-1 mt-3">📡 Auto-Match Garmin vs Plan</h6>
+                <table class="table table-dark table-sm table-borderless bg-transparent mt-2">
+                    <thead>
+                        <tr class="text-muted" style="font-size: 0.75rem;">
+                            <th>Métrica</th>
+                            <th>Planificado</th>
+                            <th class="text-info">Real (Reloj)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Distancia</td>
+                            <td>{{ goal.target_distance_km }} km</td>
+                            <td class="text-info fw-bold">{{ garmin_match.distancia|floatformat:1 }} km</td>
+                        </tr>
+                        <tr>
+                            <td>Desnivel</td>
+                            <td>+{{ goal.target_elevation_gain }} m</td>
+                            <td class="text-info fw-bold">+{{ garmin_match.desnivel }} m</td>
+                        </tr>
+                        {% if goal.expected_te %}
+                        <tr>
+                            <td>T. Effect</td>
+                            <td>{{ goal.expected_te }}</td>
+                            <td class="text-info fw-bold">{{ garmin_match.te_aerobico|default:"-" }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="alert alert-dark border-secondary text-muted p-2 mt-3 text-center" style="font-size: 0.8rem;">
+                    ⏳ Esperando sincronización con Garmin para cruzar datos...
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- COLUMNA DERECHA: Mapa Topográfico y Altimetría -->
+    <div class="col-lg-8">
+        <div class="card bg-glass border-0 shadow-lg p-1 mb-4">
+            {% if track_points %}
+                <div id="mapaTopografico" style="height: 450px; width: 100%; border-radius: 8px;"></div>
+            {% else %}
+                <div class="d-flex flex-column justify-content-center align-items-center text-muted" style="min-height: 450px;">
+                    <span style="font-size: 3rem; margin-bottom: 10px;">🗺️</span>
+                    <h5 class="fw-bold">Sin Ruta Cargada</h5>
+                    <p>Editá este objetivo y adjuntá el archivo .gpx para visualizar el relieve.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if elevation_profile %}
+        <div class="card bg-glass border-0 shadow-lg p-3">
+            <h6 class="fw-bold text-warning mb-3">⛰️ Perfil de Elevación (Altimetría)</h6>
+            <div style="position: relative; height:200px; width:100%">
+                <canvas id="elevationChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Puente seguro de datos para JS -->
+{% if track_points %}
+    {{ track_points|json_script:"gpx-coords" }}
+{% endif %}
+{% if elevation_profile %}
+    {{ elevation_profile|json_script:"gpx-elevation" }}
+{% endif %}
+{% if km_markers %}
+    {{ km_markers|json_script:"gpx-km-markers" }}
+{% endif %}
+
+<!-- Librerías JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. RENDERIZAR MAPA TOPOGRÁFICO
+    const scriptCoords = document.getElementById('gpx-coords');
+    if (scriptCoords) {
+        const coordenadas = JSON.parse(scriptCoords.textContent);
+        if (coordenadas.length > 0) {
+            const map = L.map('mapaTopografico');
+            
+            L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 }).addTo(map);
+            
+            const rutaLayer = L.polyline(coordenadas, { color: '#dc3545', weight: 5, opacity: 0.9 }).addTo(map);
+            map.fitBounds(rutaLayer.getBounds(), { padding: [50, 50] });
+            
+            L.circleMarker(coordenadas[0], { color: '#198754', radius: 8, fillOpacity: 1 }).addTo(map).bindPopup("🏁 Largada");
+            L.circleMarker(coordenadas[coordenadas.length - 1], { color: '#0dcaf0', radius: 8, fillOpacity: 1 }).addTo(map).bindPopup("🏆 Llegada");
+
+            const scriptKm = document.getElementById('gpx-km-markers');
+            if (scriptKm) {
+                const kmMarkers = JSON.parse(scriptKm.textContent);
+                kmMarkers.forEach(marcador => {
+                    const kmIcon = L.divIcon({
+                        className: 'custom-km-marker',
+                        html: `<div style="background-color: white; color: #dc3545; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #dc3545; font-size: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">${marcador.km}</div>`,
+                        iconSize: [22, 22],
+                        iconAnchor: [11, 11]
+                    });
+                    L.marker([marcador.lat, marcador.lng], {icon: kmIcon}).addTo(map).bindPopup(`Kilómetro ${marcador.km}`);
+                });
+            }
+        }
+    }
+
+    // 2. RENDERIZAR PERFIL DE ALTIMETRÍA
+    const scriptElevation = document.getElementById('gpx-elevation');
+    if (scriptElevation) {
+        const altimetria = JSON.parse(scriptElevation.textContent);
+        if (altimetria.length > 0) {
+            const ctx = document.getElementById('elevationChart').getContext('2d');
+            const dataPuntos = altimetria.map(p => p.y);
+            const labelsKm = altimetria.map(p => p.x);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labelsKm,
+                    datasets: [{
+                        label: 'Altitud (m)',
+                        data: dataPuntos,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { title: { display: true, text: 'Distancia (Km)' }, ticks: { maxTicksLimit: 10 } },
+                        y: { title: { display: true, text: 'Metros s.n.m.' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

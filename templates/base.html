@@ -16,7 +16,7 @@
     <!-- NAVBAR (Logo 1) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-glass sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
                 <img src="{% static 'img/tria.png' %}" alt="Logo ProTraining" width="60" height="60" class="me-3 rounded">
                 <span class="fw-bold tracking-wide">ProTraining</span>
             </a>
@@ -25,14 +25,32 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto gap-2">
-                    <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'dashboard' %}">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'actividades' %}">Actividades</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Objetivos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Salud</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'objetivos' %}">Objetivos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'salud' %}">Salud</a></li>
+                    <li class="nav-item ms-3 d-flex align-items-center">
+                        <a href="{% url 'garmin_sync' %}" class="btn btn-outline-info btn-sm fw-bold rounded-pill shadow-sm" onclick="this.innerHTML='⏳ Sincronizando...'; this.classList.add('disabled');">
+                            🔄 Sync Garmin
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
+    <!-- SISTEMA DE ALERTAS (Notificaciones flotantes) -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert" style="background-color: rgba(33, 37, 41, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff;">
+                    {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="container my-5 flex-grow-1">

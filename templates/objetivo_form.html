@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Editar Objetivo{% else %}Nuevo Objetivo{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{% url 'objetivos' %}" class="btn btn-sm btn-outline-secondary mb-3">⬅️ Volver a Objetivos</a>
+            <h2 class="fw-bold text-light">{% if object %}Editar Carrera: {{ object.name }}{% else %}🏁 Planificar Nuevo Objetivo{% endif %}</h2>
+            <p class="text-muted mb-0">Completá los datos tácticos de tu próxima competencia.</p>
+        </div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <!-- COLUMNA IZQUIERDA: Datos Base y Estrategia -->
+        <div class="col-lg-6">
+            
+            <!-- TARJETA 1: Información General -->
+            <div class="card bg-glass border-secondary shadow-sm mb-4">
+                <div class="card-header border-secondary text-warning fw-bold">1. Información Principal</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Nombre de la Carrera</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Tipo de Evento</label>
+                        {{ form.race_type }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Fecha del Evento</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Inicio del Entrenamiento</label>
+                            {{ form.training_start_date }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-light">Distancia (km)</label>
+                            {{ form.target_distance_km }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-light">Desnivel (+m)</label>
+                            {{ form.target_elevation_gain }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-light">Tiempo/Ritmo</label>
+                            {{ form.target_pace }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Archivo Topográfico (.gpx)</label>
+                        {{ form.gpx_file }}
+                    </div>
+                    <div class="form-check mt-3">
+                        {{ form.is_completed }}
+                        <label class="form-check-label text-light ms-2" for="{{ form.is_completed.id_for_label }}">
+                            Marcar como Completada
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA 2: Estrategia y Fisiología -->
+            <div class="card bg-glass border-secondary shadow-sm mb-4">
+                <div class="card-header border-secondary text-info fw-bold">2. Táctica y Predicción</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Clima Esperado</label>
+                            {{ form.weather_condition }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Temp. Estimada (°C)</label>
+                            {{ form.temperature }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Estrategia de Nutrición</label>
+                        {{ form.nutrition_strategy }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Pacing (Zona FC)</label>
+                            {{ form.target_hr_zone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Training Effect Esperado</label>
+                            {{ form.expected_te }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- COLUMNA DERECHA: Dinámica -->
+        <div class="col-lg-6">
+            
+            <!-- TARJETA 3: Desglose Triatlón (Se oculta por JS si no es Triatlón) -->
+            <div class="card bg-glass border-primary shadow-sm mb-4" id="triathlon-section" style="display: none;">
+                <div class="card-header border-primary text-primary fw-bold">🏊🚴🏃 Desglose Multisport</div>
+                <div class="card-body">
+                    <p class="small text-muted mb-4">Completá los parciales específicos para esta prueba combinada.</p>
+                    
+                    <h6 class="text-info border-bottom border-secondary pb-1">Natación</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label class="form-label text-light small">Metros</label>{{ form.swim_distance_m }}</div>
+                        <div class="col-md-6"><label class="form-label text-light small">Ritmo (min/100m)</label>{{ form.swim_pace }}</div>
+                    </div>
+                    
+                    <div class="mb-3 px-3 py-2 rounded bg-dark border border-secondary">
+                        <label class="form-label text-light small mb-0">Tiempo Transición 1 (T1)</label>
+                        {{ form.t1_time }}
+                    </div>
+
+                    <h6 class="text-warning border-bottom border-secondary pb-1 mt-4">Ciclismo</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label class="form-label text-light small">Kilómetros</label>{{ form.bike_distance_km }}</div>
+                        <div class="col-md-6"><label class="form-label text-light small">Velocidad (km/h)</label>{{ form.bike_speed }}</div>
+                    </div>
+
+                    <div class="mb-3 px-3 py-2 rounded bg-dark border border-secondary">
+                        <label class="form-label text-light small mb-0">Tiempo Transición 2 (T2)</label>
+                        {{ form.t2_time }}
+                    </div>
+
+                    <h6 class="text-success border-bottom border-secondary pb-1 mt-4">Running</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label class="form-label text-light small">Kilómetros</label>{{ form.run_distance_km }}</div>
+                        <div class="col-md-6"><label class="form-label text-light small">Ritmo (min/km)</label>{{ form.run_pace }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTONES GUARDAR -->
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-success btn-lg fw-bold rounded-pill shadow">
+                    💾 Guardar Objetivo
+                </button>
+                <a href="{% url 'objetivos' %}" class="btn btn-outline-secondary rounded-pill">Cancelar</a>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const raceTypeSelect = document.getElementById('id_race_type');
+    const triathlonSection = document.getElementById('triathlon-section');
+
+    function toggleTriathlonFields() {
+        if (raceTypeSelect.value === 'TRIATHLON') {
+            triathlonSection.style.display = 'block';
+        } else {
+            triathlonSection.style.display = 'none';
+        }
+    }
+
+    // Ejecutar al cargar la página (por si estamos editando un triatlón existente)
+    toggleTriathlonFields();
+
+    // Ejecutar cada vez que el usuario cambia el desplegable
+    raceTypeSelect.addEventListener('change', toggleTriathlonFields);
+});
+</script>
+{% endblock %}

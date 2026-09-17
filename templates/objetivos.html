@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Objetivos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-end">
+        <div>
+            <h2 class="fw-bold">Mis Objetivos</h2>
+            <p class="text-muted mb-0">Planificación de carreras y visualización topográfica.</p>
+        </div>
+        <a href="{% url 'create_goal' %}" class="btn btn-outline-success fw-bold rounded-pill shadow-sm">
+            ➕ Nuevo Objetivo
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    {% for goal in goals %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card bg-glass border-secondary shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title fw-bold text-warning mb-0">{{ goal.name }}</h5>
+                    <span class="badge bg-dark border border-secondary text-light">{{ goal.date|date:"Y" }}</span>
+                </div>
+                <h6 class="card-subtitle mb-3 text-light">🎯 {{ goal.get_race_type_display }}</h6>
+                
+                <hr class="border-secondary">
+                
+                <ul class="list-unstyled text-muted small mb-4">
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span>📅 Fecha:</span> 
+                        <span class="text-light fw-bold">{{ goal.date|date:"d M Y" }}</span>
+                    </li>
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span>⏳ Faltan:</span> 
+                        <span class="text-info fw-bold">{{ goal.days_to_race }} días</span>
+                    </li>
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span>📏 Distancia:</span> 
+                        <span class="text-success fw-bold">{{ goal.target_distance_km }} km</span>
+                    </li>
+                    <li class="mb-2 d-flex justify-content-between">
+                        <span>⛰️ Desnivel:</span> 
+                        <span class="text-warning fw-bold">+{{ goal.target_elevation_gain }} m</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
+                <a href="{% url 'mapa_objetivo' goal.pk %}" class="btn btn-sm btn-outline-info w-100 rounded-pill fw-bold">
+                    🗺️ Ver Objetivo
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card bg-glass border-secondary border-dashed p-5 text-center">
+            <span style="font-size: 3rem; margin-bottom: 15px;">🏁</span>
+            <h4 class="text-light fw-bold">No tenés ningún objetivo cargado</h4>
+            <p class="text-muted mb-4">Agregá tu próxima carrera, cargá el GPX y analizá el terreno.</p>
+            <div>
+                <a href="{% url 'create_goal' %}" class="btn btn-success fw-bold rounded-pill shadow">
+                    ➕ Cargar mi primer objetivo
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
