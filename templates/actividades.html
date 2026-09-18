@@ -67,7 +67,14 @@
                                         <td>{{ act.distance_km|floatformat:2 }} km</td>
                                         <td>{{ act.elevation_gain }} m</td>
                                         <td>{{ act.formatted_duration }}</td>
-                                        <td>{{ act.avg_heart_rate|default:"-" }} lpm</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span>{{ act.avg_heart_rate|default:"-" }} lpm</span>
+                                                {% if act.avg_heart_rate %}
+                                                    <span class="badge bg-dark border border-secondary ms-2" style="font-size: 0.75rem;">{{ act.clinical_zone }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
                                         <td>
                                             <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
                                             <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
@@ -122,7 +129,14 @@
                                         <td>{{ act.elevation_gain }} m</td>
                                         <td>{{ act.formatted_duration }}</td>
                                         <td>{{ act.avg_speed|floatformat:1|default:"-" }} km/h</td>
-                                        <td>{{ act.avg_heart_rate|default:"-" }} lpm</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span>{{ act.avg_heart_rate|default:"-" }} lpm</span>
+                                                {% if act.avg_heart_rate %}
+                                                    <span class="badge bg-dark border border-secondary ms-2" style="font-size: 0.75rem;">{{ act.clinical_zone }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
                                         <td>
                                             <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
                                             <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>
@@ -183,7 +197,14 @@
                                         <td>{{ act.distance_meters }} m</td>
                                         <td>{{ act.formatted_duration }}</td>
                                         <td>{{ act.swolf|default:"-" }}</td>
-                                        <td>{{ act.avg_heart_rate|default:"-" }} lpm</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span>{{ act.avg_heart_rate|default:"-" }} lpm</span>
+                                                {% if act.avg_heart_rate %}
+                                                    <span class="badge bg-dark border border-secondary ms-2" style="font-size: 0.75rem;">{{ act.clinical_zone }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
                                         <td>
                                             <span class="text-info">{{ act.te_aerobic|floatformat:1|default:"-" }}</span> / 
                                             <span class="text-warning">{{ act.te_anaerobic|floatformat:1|default:"-" }}</span>

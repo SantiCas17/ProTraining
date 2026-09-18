@@ -8,18 +8,52 @@ class BaseActivity(models.Model):
     date = models.DateTimeField(verbose_name="Fecha y Hora")
     duration = models.DurationField(default=timedelta, verbose_name="Tiempo Total")
     avg_heart_rate = models.IntegerField(null=True, blank=True, verbose_name="FC Promedio (LPM)")
-    #Métricas de Impacto
+    
+    # Métricas de Impacto
     te_aerobic = models.FloatField(null=True, blank=True, verbose_name="TE Aeróbico (0-5)")
     te_anaerobic = models.FloatField(null=True, blank=True, verbose_name="TE Anaeróbico (0-5)")
-    #Campo para Nutrición, dolores o mecánica
+    
+    # Campo para Nutrición, dolores o mecánica
     notes = models.TextField(blank=True, null=True, verbose_name="Notas / Nutrición / Mecánica")
 
     def __str__(self):
         return f"{self.date.strftime('%d/%m/%Y')} - {self.__class__.__name__}"
+        
     @property
     def formatted_duration(self):
         """Limpia los microsegundos del campo DurationField"""
         return str(self.duration).split('.')[0]
+
+    @property
+    def clinical_zone(self):
+        """
+        Cruza la FC Promedio de la actividad con la Ergometría vigente 
+        en esa fecha exacta para determinar la zona de esfuerzo real.
+        """
+        if not self.avg_heart_rate:
+            return "Sin FC"
+
+        # Importación local para evitar errores de referencia circular entre apps
+        from health.models import ErgometryTest
+
+        # Busca el último estudio clínico realizado ANTES o el mismo día de la actividad
+        test = ErgometryTest.objects.filter(date__lte=self.date.date()).order_by('-date').first()
+
+        if not test:
+            return "Sin Ergometría"
+
+        hr = self.avg_heart_rate
+
+        if hr <= test.z1_max:
+            return "🟩 Z1 (Regenerativo)"
+        elif hr <= test.z2_max:
+            return "🟩 Z2 (Aeróbico)"
+        elif hr <= test.z3_max:
+            return "🟨 Z3 (Umbral)"
+        elif hr <= test.z4_max:
+            return "🟧 Z4 (Anaeróbico)"
+        else:
+            return "🟥 Z5 (Máximo)"
 
 
 class RunActivity(BaseActivity):
@@ -27,7 +61,7 @@ class RunActivity(BaseActivity):
     distance_km = models.FloatField(verbose_name="Distancia (km)")
     elevation_gain = models.IntegerField(default=0, verbose_name="Desnivel Positivo (+m)")
     avg_pace = models.CharField(max_length=10, blank=True, null=True, verbose_name="Ritmo Promedio (min/km)")
-    #Dinámica de Carrera
+    # Dinámica de Carrera
     cadence = models.IntegerField(null=True, blank=True, verbose_name="Cadencia (ppm)")
     stride_length = models.FloatField(null=True, blank=True, verbose_name="Longitud de Zancada (m)")
     vertical_oscillation = models.FloatField(null=True, blank=True, verbose_name="Oscilación Vertical (cm)")
@@ -40,14 +74,12 @@ class CyclingActivity(BaseActivity):
     avg_cadence = models.IntegerField(null=True, blank=True, verbose_name="Cadencia Promedio (ppm)")
     avg_power = models.IntegerField(null=True, blank=True, verbose_name="Potencia Promedio (Watts)")
 
-
 class SwimActivity(BaseActivity):
     is_open_water = models.BooleanField(default=False, verbose_name="¿Aguas Abiertas?")
     distance_meters = models.IntegerField(verbose_name="Distancia (metros)")
     strokes = models.IntegerField(null=True, blank=True, verbose_name="Cantidad de Brazadas")
     swolf = models.IntegerField(null=True, blank=True, verbose_name="SWOLF")
     avg_pace_100m = models.CharField(max_length=10, blank=True, null=True, verbose_name="Ritmo (min/100m)")
-
 
 class BikeComponent(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nombre del Repuesto")
