@@ -2,12 +2,12 @@
   <img src="static/img/tria.png" alt="Logo ProTraining" width="220" style="border-radius: 15px;"/>
   
   # ProTraining
-  *Plataforma de Gestión Deportiva Local para Atletas de Endurance*
+  *Plataforma de Gestión Deportiva Local para Atletas*
 </div>
 ---
 
 ## 📌 Descripción del Proyecto
-ProTraining es un sistema integral de gestión de entrenamiento desarrollado en Python/Django, diseñado para monitorizar el rendimiento en Trail Running, Ciclismo y Natación. La plataforma cruza datos de esfuerzo real con historiales clínicos (Ergometrías), evalúa la recuperación diaria y sincroniza reportes ligeros hacia Google Sheets para facilitar su consulta rápida offline.
+ProTraining es un sistema integral de gestión de entrenamiento desarrollado en Python/Django, diseñado para monitorizar el rendimiento en Trail Running, Ciclismo y Natación. La plataforma cruza datos de esfuerzo real con historiales clínicos (Ergometrías), evalúa la recuperación diaria y sincroniza reportes ligeros hacia Google Sheets para facilitar su consulta rápida lectura offline.
 
 ## 🚀 Características Principales
 * **Dashboard Maestro:** Panel de control analítico con métricas semanales detalladas por deporte y un widget matutino de "Estado del Motor" (evaluación cruzada de sueño, estrés y FC de reposo).
