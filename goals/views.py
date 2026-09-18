@@ -12,7 +12,7 @@ class GoalListView(ListView):
     context_object_name = 'goals'
 
     def get_queryset(self):
-        # Ordenamos para que las carreras más próximas salgan primero
+        #carreras más próximas salen primero
         return RaceGoal.objects.filter(is_completed=False).order_by('date')
 
 class GoalDetailView(DetailView):
@@ -28,7 +28,7 @@ class GoalDetailView(DetailView):
         elevation_profile = []
         km_markers = [] # NUEVO: Array para guardar los puntos cada 5km
         
-        # 1. MOTOR GEOESPACIAL Y ALTIMETRÍA (GPX)
+        #GPX
         if goal.gpx_file:
             try:
                 with goal.gpx_file.open('r') as gpx_file:
@@ -36,7 +36,7 @@ class GoalDetailView(DetailView):
                     
                     distancia_acumulada = 0
                     punto_anterior = None
-                    siguiente_marcador_km = 5 # Queremos el primer marcador en el km 5
+                    siguiente_marcador_km = 5 
 
                     for track in gpx.tracks:
                         for segment in track.segments:
@@ -46,7 +46,6 @@ class GoalDetailView(DetailView):
                                 if punto_anterior:
                                     distancia_acumulada += point.distance_2d(punto_anterior)
                                 
-                                # ¿Cruzamos la barrera de los próximos 5km?
                                 distancia_km = distancia_acumulada / 1000.0
                                 if distancia_km >= siguiente_marcador_km:
                                     km_markers.append({
@@ -68,14 +67,14 @@ class GoalDetailView(DetailView):
                 
         context['track_points'] = track_points
         context['elevation_profile'] = elevation_profile
-        context['km_markers'] = km_markers # Mandamos los marcadores al frontend
+        context['km_markers'] = km_markers
 
-        # 2. MOTOR PREDICTIVO (READINESS) MULTI-FACTOR
+        #Predicción de Readiness (Estado de Forma) basado en entrenamientos previos
         volumen_km = 0
         volumen_desnivel = 0
         promedio_te = 0
 
-        # Filtramos entrenamientos del bloque
+        #entrenamientos
         if goal.race_type in ['TRAIL', 'STREET']:
             entrenamientos = RunActivity.objects.filter(date__gte=goal.training_start_date, date__lte=goal.date)
             volumen_km = entrenamientos.aggregate(Sum('distance_km'))['distance_km__sum'] or 0
@@ -88,13 +87,13 @@ class GoalDetailView(DetailView):
             volumen_desnivel = entrenamientos.aggregate(Sum('elevation_gain'))['elevation_gain__sum'] or 0
             promedio_te = entrenamientos.aggregate(Avg('te_aerobic'))['te_aerobic__avg'] or 0
 
-        # Sistema de Puntuación (Score de 0 a 100)
+        #Score de 0 a 100
         estado_forma = "Sin Datos"
         color_estado = "secondary"
         progreso_porcentaje = 0
-        diagnosticos = [] # Guardará los avisos específicos
+        diagnosticos = [] 
 
-        # A. Evaluación de Volumen (Km)
+        #volumen km
         if goal.target_distance_km > 0:
             ratio_km = volumen_km / goal.target_distance_km
             if ratio_km >= 4:
@@ -109,7 +108,7 @@ class GoalDetailView(DetailView):
         else:
             progreso_porcentaje += 50 # Si no hay meta, damos puntaje completo
 
-        # B. Evaluación de Desnivel
+        #Desnivel
         if goal.target_elevation_gain > 0:
             ratio_desnivel = volumen_desnivel / goal.target_elevation_gain
             if ratio_desnivel >= 4:
@@ -124,7 +123,7 @@ class GoalDetailView(DetailView):
         else:
             progreso_porcentaje += 50 # Si es llano, damos puntaje completo
 
-        # C. Evaluación Fisiológica (Training Effect)
+        #Training Effect
         if promedio_te > 0:
             if goal.expected_te and promedio_te < (goal.expected_te - 1.5):
                 diagnosticos.append(f"⚠️ Impacto: TE promedio ({round(promedio_te, 1)}) muy bajo vs la exigencia de carrera.")
@@ -133,7 +132,7 @@ class GoalDetailView(DetailView):
             else:
                 diagnosticos.append(f"ℹ️ Impacto: Mayormente regenerativo/mantenimiento (TE: {round(promedio_te, 1)}).")
 
-        # Asignación Final de Estado
+        #Estado
         if progreso_porcentaje >= 80:
             estado_forma, color_estado = "Óptimo", "success"
         elif progreso_porcentaje >= 50:
@@ -149,10 +148,10 @@ class GoalDetailView(DetailView):
             'porcentaje': int(progreso_porcentaje),
             'diagnosticos': diagnosticos
         }
-        # 3. AUTO-MATCH CON GARMIN (Post-Carrera)
+        #Post-Carrera
         if goal.is_completed:
             garmin_match = None
-            # Buscamos si hay una actividad real registrada el mismo día del objetivo
+            # Busca la actividad real
             if goal.race_type in ['TRAIL', 'STREET']:
                 garmin_match = RunActivity.objects.filter(date__date=goal.date).first()
             elif goal.race_type == 'MTB':

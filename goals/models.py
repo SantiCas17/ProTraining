@@ -25,18 +25,18 @@ class RaceGoal(models.Model):
         ('Z5', 'Zona 5 (Máximo)'),
     ]
 
-    # 1. DATOS GENERALES
+    #Datos generales
     name = models.CharField(max_length=200, verbose_name="Nombre de la Carrera")
     race_type = models.CharField(max_length=20, choices=RACE_TYPES, verbose_name="Tipo")
     date = models.DateField(verbose_name="Fecha del Evento")
     training_start_date = models.DateField(default=timezone.now, verbose_name="Inicio del Entrenamiento")
     
-    # 2. MÉTRICAS PRINCIPALES
+    #Métricas
     target_distance_km = models.FloatField(verbose_name="Distancia Total (km)")
     target_elevation_gain = models.IntegerField(default=0, verbose_name="Desnivel Positivo (+m)")
     target_pace = models.CharField(max_length=10, blank=True, null=True, verbose_name="Ritmo/Tiempo Objetivo")
     
-    # 3. DESGLOSE TRIATLÓN
+    #Tria
     swim_distance_m = models.IntegerField(default=0, blank=True, null=True, verbose_name="Natación (m)")
     swim_pace = models.CharField(max_length=10, blank=True, null=True, verbose_name="Ritmo Nado (min/100m)")
     t1_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="Tiempo T1")
@@ -46,16 +46,16 @@ class RaceGoal(models.Model):
     run_distance_km = models.FloatField(default=0, blank=True, null=True, verbose_name="Running (km)")
     run_pace = models.CharField(max_length=10, blank=True, null=True, verbose_name="Ritmo Run (min/km)")
     
-    # 4. CONDICIONES Y ESTRATEGIA (NUEVO)
+    #Estrategia
     weather_condition = models.CharField(max_length=20, choices=WEATHER_CHOICES, blank=True, null=True, verbose_name="Clima Esperado")
     temperature = models.IntegerField(blank=True, null=True, verbose_name="Temperatura Estimada (°C)")
     nutrition_strategy = models.TextField(blank=True, null=True, verbose_name="Estrategia de Nutrición e Hidratación", help_text="Ej: Gel cada 45min, 500ml isotónica por hora.")
     
-    # 5. FISIOLOGÍA Y READINESS (NUEVO)
+    #Hr, TE
     target_hr_zone = models.CharField(max_length=5, choices=HR_ZONES, blank=True, null=True, verbose_name="Zona FC Objetivo")
     expected_te = models.FloatField(blank=True, null=True, verbose_name="Training Effect Esperado (1.0 - 5.0)")
 
-    # 6. ARCHIVOS
+    #Archivos
     gpx_file = models.FileField(upload_to='gpx_tracks/', blank=True, null=True, verbose_name="Archivo GPX")
     is_completed = models.BooleanField(default=False, verbose_name="¿Completada?")
 
@@ -74,7 +74,7 @@ class RaceGoal(models.Model):
         return f"{self.name} ({self.date.year})"
 
 
-# NUEVO MODELO: PUNTOS DE CONTROL (PAS)
+#PAS
 class RaceCheckpoint(models.Model):
     goal = models.ForeignKey(RaceGoal, on_delete=models.CASCADE, related_name='checkpoints')
     name = models.CharField(max_length=100, verbose_name="Nombre del PAS / Control")

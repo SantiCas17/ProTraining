@@ -8,7 +8,7 @@ from tqdm import tqdm
 from activities.models import RunActivity, CyclingActivity, SwimActivity
 from health.models import DailyHealth
 
-# variables .env
+#variables .env
 load_dotenv()
 
 def get_garmin_client():
@@ -20,7 +20,7 @@ def get_garmin_client():
         raise ValueError("⚠️ Faltan las credenciales de Garmin en el archivo .env")
 
     try:
-        # Inicializamos el cliente
+        #Inicializamos el cliente
         client = Garmin(email, password)
         client.login()
         return client
@@ -36,7 +36,7 @@ def sync_garmin_by_date(start_date, end_date):
     start_str = start_date.strftime('%Y-%m-%d')
     end_str = end_date.strftime('%Y-%m-%d')
     
-    # 1. INGESTA DE ACTIVIDADES
+    #ACTIVIDADES
     try:
         activities = client.get_activities_by_date(start_str, end_str, '')
         for act in activities:
@@ -84,20 +84,19 @@ def sync_garmin_by_date(start_date, end_date):
     except Exception as e:
         print(f"Error descargando actividades: {e}")
 
-    # 2. INGESTA DE SALUD (Día por día con barra de carga y retraso)
+    #SALUD
     delta_days = (end_date - start_date).days + 1
     current_date = start_date
     
     print("\nProcesando métricas diarias de Salud (Garmin API):")
     
-    # Envolvemos el rango de días en tqdm para generar la barra visual
+    #rango de días
     for _ in tqdm(range(delta_days), desc="Progreso", unit="día"):
         d_str = current_date.isoformat()
         try:
             stats = client.get_stats(d_str)
             sleep = client.get_sleep_data(d_str)
             
-            # NUEVA LÓGICA: Busca el puntaje en los diferentes formatos de Garmin
             sleep_score = None
             if sleep and 'dailySleepDTO' in sleep:
                 dto = sleep['dailySleepDTO']

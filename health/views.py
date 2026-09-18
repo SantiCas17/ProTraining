@@ -29,7 +29,6 @@ class HealthDashboardView(TemplateView):
             estres.append(record.stress_level or 0)
             sueño.append(record.sleep_score or 0)
 
-        # Empaquetamos todo para mandarlo al Javascript
         context['health_chart_data'] = {
             'labels': fechas,
             'resting_hr': fc_reposo,
@@ -45,7 +44,7 @@ class HealthDashboardView(TemplateView):
 class ErgometryCreateView(CreateView):
     model = ErgometryTest
     form_class = ErgometryTestForm
-    template_name = 'actividad_form.html' # Reciclamos el genérico porque es simple
+    template_name = 'actividad_form.html'
     success_url = reverse_lazy('salud')
 
 class ErgometryUpdateView(UpdateView):
@@ -56,5 +55,5 @@ class ErgometryUpdateView(UpdateView):
 
 class ErgometryDeleteView(DeleteView):
     model = ErgometryTest
-    template_name = 'objetivo_confirm_delete.html' # Reciclamos la pantalla de confirmación
+    template_name = 'objetivo_confirm_delete.html'
     success_url = reverse_lazy('salud')

@@ -9,11 +9,11 @@ class BaseActivity(models.Model):
     duration = models.DurationField(default=timedelta, verbose_name="Tiempo Total")
     avg_heart_rate = models.IntegerField(null=True, blank=True, verbose_name="FC Promedio (LPM)")
     
-    # Métricas de Impacto
+    #Métricas de Impacto
     te_aerobic = models.FloatField(null=True, blank=True, verbose_name="TE Aeróbico (0-5)")
     te_anaerobic = models.FloatField(null=True, blank=True, verbose_name="TE Anaeróbico (0-5)")
     
-    # Campo para Nutrición, dolores o mecánica
+    #Campo para Nutrición, dolores o mecánica
     notes = models.TextField(blank=True, null=True, verbose_name="Notas / Nutrición / Mecánica")
 
     def __str__(self):
@@ -33,10 +33,10 @@ class BaseActivity(models.Model):
         if not self.avg_heart_rate:
             return "Sin FC"
 
-        # Importación local para evitar errores de referencia circular entre apps
+        #Importación local
         from health.models import ErgometryTest
 
-        # Busca el último estudio clínico realizado ANTES o el mismo día de la actividad
+        #Busca el último estudio clínico
         test = ErgometryTest.objects.filter(date__lte=self.date.date()).order_by('-date').first()
 
         if not test:
