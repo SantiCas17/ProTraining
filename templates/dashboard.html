@@ -14,6 +14,138 @@
 
 <div class="row">
     <div class="col-12">
+        <!-- CENTRO DE COMANDO (Widgets de Presente y Futuro) -->
+<div class="row mb-4">
+    <!-- WIDGET: PRÓXIMO DESAFÍO -->
+    <div class="col-md-6 mb-3">
+        <div class="card bg-glass border-warning shadow-sm h-100" style="background-color: rgba(25, 25, 25, 0.8);">
+            <div class="card-body">
+                <h6 class="text-warning fw-bold border-bottom border-secondary pb-2">🎯 Próximo Desafío</h6>
+                {% if proximo_objetivo %}
+                    <h4 class="text-light fw-bold mt-3">{{ proximo_objetivo.name }}</h4>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <span class="badge bg-secondary">{{ proximo_objetivo.get_race_type_display }}</span>
+                            <span class="ms-2 text-muted small">{{ proximo_objetivo.target_distance_km|floatformat:1 }}km | +{{ proximo_objetivo.target_elevation_gain }}m</span>
+                        </div>
+                        <h3 class="text-info fw-bold mb-0">{{ proximo_objetivo.days_to_race }} <span class="fs-6 text-muted">días</span></h3>
+                    </div>
+                {% else %}
+                    <p class="text-muted mt-3">No tenés competencias en el horizonte.</p>
+                    <a href="{% url 'create_goal' %}" class="btn btn-sm btn-outline-warning">Planificar Objetivo</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- WIDGET: ESTADO DEL MOTOR -->
+    <div class="col-md-6 mb-3">
+        <div class="card bg-glass border-{{ color_motor }} shadow-sm h-100" style="background-color: rgba(25, 25, 25, 0.8);">
+            <div class="card-body">
+                <h6 class="text-{{ color_motor }} fw-bold border-bottom border-secondary pb-2">🔋 Estado del Motor (Hoy)</h6>
+                {% if motor_salud %}
+                    <div class="row mt-3">
+                        <div class="col-4 text-center border-end border-secondary">
+                            <span class="d-block text-muted small mb-1">Sueño</span>
+                            <strong class="text-info fs-4">{{ motor_salud.sleep_score|default:"-" }}</strong>
+                        </div>
+                        <div class="col-4 text-center border-end border-secondary">
+                            <span class="d-block text-muted small mb-1">Estrés</span>
+                            <strong class="text-warning fs-4">{{ motor_salud.stress_level|default:"-" }}</strong>
+                        </div>
+                        <div class="col-4 text-center">
+                            <span class="d-block text-muted small mb-1">FC Reposo</span>
+                            <strong class="text-danger fs-4">{{ motor_salud.resting_heart_rate|default:"-" }}</strong>
+                        </div>
+                    </div>
+                    {% if alerta_motor %}
+                    <div class="mt-3 p-2 rounded text-light small fw-bold" style="background-color: rgba(0,0,0,0.5); border-left: 4px solid var(--bs-{{ color_motor }});">
+                        {{ alerta_motor }}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-2">No hay datos de salud recientes.</p>
+                        <span class="badge bg-secondary">Sincronizá Garmin para diagnosticar</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- FIN CENTRO DE COMANDO -->
+<!-- WIDGET: RESUMEN SEMANAL HORIZONTAL (SEPARADO) -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card bg-glass border-secondary shadow-sm" style="background-color: rgba(25, 25, 25, 0.8);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">
+                    <h6 class="text-light fw-bold mb-0">🗓️ Volumen Semanal Detallado</h6>
+                    <span class="text-muted small">Semana Actual vs. Anterior</span>
+                </div>
+                
+                <!-- FILA 1: RUNNING & TRAIL -->
+                <h6 class="text-success small fw-bold mb-2">🏃 Running & Trail</h6>
+                <div class="d-flex justify-content-between text-center flex-wrap flex-md-nowrap gap-2 mb-4">
+                    {% for dia in resumen_semanal.calendario %}
+                    <div class="flex-fill border-end border-secondary px-1" style="min-width: 60px;">
+                        <span class="d-block text-muted small fw-bold mb-1">{{ dia.dia }}</span>
+                        <span class="d-block text-success fs-6 fw-bold">{{ dia.run_actual }} <span style="font-size: 0.6rem;">km</span></span>
+                        {% if dia.elev_actual > 0 %}
+                            <span class="d-block text-warning" style="font-size: 0.7rem;">+{{ dia.elev_actual }}m</span>
+                        {% else %}
+                            <span class="d-block text-transparent" style="font-size: 0.7rem;">-</span> <!-- Espaciador invisible -->
+                        {% endif %}
+                        <span class="d-block text-muted mt-1" style="font-size: 0.7rem;">vs {{ dia.run_pasada }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Columna de Total Running -->
+                    <div class="flex-fill px-2 py-1 bg-dark rounded ms-md-2 d-flex flex-column justify-content-center border border-success" style="min-width: 80px;">
+                        <span class="d-block text-success small fw-bold mb-1">TOTAL</span>
+                        <span class="d-block text-success fs-5 fw-bold">{{ resumen_semanal.run_total_actual }} <span style="font-size: 0.6rem;">km</span></span>
+                        {% if resumen_semanal.run_elev_total > 0 %}
+                            <span class="d-block text-warning small fw-bold">+{{ resumen_semanal.run_elev_total }}m</span>
+                        {% endif %}
+                        <span class="d-block text-muted mt-1" style="font-size: 0.75rem;">
+                            {% if resumen_semanal.run_tendencia == 'positiva' %}
+                                <span class="text-success">▲</span>
+                            {% else %}
+                                <span class="text-danger">▼</span>
+                            {% endif %}
+                            vs {{ resumen_semanal.run_total_pasada }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- FILA 2: CICLISMO -->
+                <h6 class="text-info small fw-bold mb-2 pt-2 border-top border-secondary">🚴 Ciclismo</h6>
+                <div class="d-flex justify-content-between text-center flex-wrap flex-md-nowrap gap-2">
+                    {% for dia in resumen_semanal.calendario %}
+                    <div class="flex-fill border-end border-secondary px-1" style="min-width: 60px;">
+                        <span class="d-block text-info fs-6 fw-bold">{{ dia.bike_actual }} <span style="font-size: 0.6rem;">km</span></span>
+                        <span class="d-block text-muted mt-1" style="font-size: 0.7rem;">vs {{ dia.bike_pasada }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Columna de Total Ciclismo -->
+                    <div class="flex-fill px-2 py-1 bg-dark rounded ms-md-2 d-flex flex-column justify-content-center border border-info" style="min-width: 80px;">
+                        <span class="d-block text-info fs-5 fw-bold">{{ resumen_semanal.bike_total_actual }} <span style="font-size: 0.6rem;">km</span></span>
+                        <span class="d-block text-muted mt-1" style="font-size: 0.75rem;">
+                            {% if resumen_semanal.bike_tendencia == 'positiva' %}
+                                <span class="text-success">▲</span>
+                            {% else %}
+                                <span class="text-danger">▼</span>
+                            {% endif %}
+                            vs {{ resumen_semanal.bike_total_pasada }}
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
         <div class="card bg-glass border-0 shadow-lg">
             
             <div class="card-header border-bottom border-secondary pt-3 px-4">
