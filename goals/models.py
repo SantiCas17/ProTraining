@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import date
 from django.utils import timezone
+import gpxpy
 
 class RaceGoal(models.Model):
     RACE_TYPES = [
@@ -72,6 +73,26 @@ class RaceGoal(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.date.year})"
+    
+    @property
+    def gpx_elevation_stats(self):
+        """Calcula el desnivel positivo y negativo real leyendo el archivo GPX"""
+        # IMPORTANTE: Cambiá 'self.gpx_file' por el nombre exacto de tu campo en el modelo
+        if not self.gpx_file: 
+            return None
+        
+        try:
+            # Abrimos y parseamos el archivo almacenado
+            gpx = gpxpy.parse(self.gpx_file.open())
+            uphill, downhill = gpx.get_uphill_downhill()
+            
+            return {
+                'positivo': int(uphill),
+                'negativo': int(downhill)
+            }
+        except Exception:
+            # Si el archivo está corrupto o falta, evitamos que la página explote
+            return None
 
 
 #PAS

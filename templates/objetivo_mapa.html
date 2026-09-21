@@ -225,7 +225,21 @@
 
         {% if elevation_profile %}
         <div class="card bg-glass border-0 shadow-lg p-3">
-            <h6 class="fw-bold text-warning mb-3">⛰️ Perfil de Elevación (Altimetría)</h6>
+            <!-- BLOQUE ACTUALIZADO: Título con insignias de desnivel GPX real -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-warning fw-bold mb-0">⛰️ Perfil de Elevación (Altimetría)</h6>
+                {% if goal.gpx_elevation_stats %}
+                <div>
+                    <span class="badge bg-success bg-opacity-75 fs-6 me-2" title="Desnivel Positivo Real del Track">
+                        ▲ +{{ goal.gpx_elevation_stats.positivo }}m
+                    </span>
+                    <span class="badge bg-danger bg-opacity-75 fs-6" title="Desnivel Negativo Real del Track">
+                        ▼ -{{ goal.gpx_elevation_stats.negativo }}m
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            
             <div style="position: relative; height:200px; width:100%">
                 <canvas id="elevationChart"></canvas>
             </div>
