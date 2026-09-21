@@ -3,5 +3,5 @@ __pycache__/
 *.pyc
 *.sqlite3
 .env
-protraining-mobile-446c349eb61b.json
+google_credentials.json
 sync_sheets.py
